@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Leni Glow Era</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 body{
   margin:0;
@@ -40,7 +41,7 @@ nav button{
   margin-bottom:15px;
   box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
-input,textarea{
+input{
   width:100%;
   margin-top:5px;
   padding:6px;
@@ -58,27 +59,21 @@ button.save{
 }
 .small{
   font-size:14px;
-  opacity:0.8;
+  margin-bottom:5px;
 }
 </style>
 </head>
+
 <body>
 
 <header>✨ Leni Glow Era ✨</header>
 
 <nav>
-  <button onclick="show('dashboard')">🏠</button>
   <button onclick="show('progress')">📊</button>
 </nav>
 
-<div id="dashboard" class="section active">
-  <div class="card">
-    <h3>Dagens setning</h3>
-    <p id="quote"></p>
-  </div>
-</div>
+<div id="progress" class="section active">
 
-<div id="progress" class="section">
   <div class="card">
     <h3>Logg målinger</h3>
     <input type="number" id="weight" placeholder="Vekt (kg)">
@@ -95,85 +90,112 @@ button.save{
     <h3>Historikk</h3>
     <div id="history"></div>
   </div>
+
 </div>
 
 <script>
+
 function show(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-const quotes=[
-"Du bygger, ikke beviser.",
-"Små steg skaper identitet.",
-"Komfort kommer av oppmøte.",
-"Struktur gir ro.",
-"Du er i prosess."
-];
-
-document.getElementById("quote").innerText=
-quotes[new Date().getDate()%quotes.length];
-
-let data=JSON.parse(localStorage.getItem("progress"))||[];
+let chartInstance = null;
+let data = JSON.parse(localStorage.getItem("progress")) || [];
 
 function saveProgress(){
-  let entry={
-    date:new Date().toLocaleDateString(),
-    weight:weight.value?parseFloat(weight.value):null,
-    waist:waist.value?parseFloat(waist.value):null,
-    lift:lift.value?parseFloat(lift.value):null
+
+  const weightVal = document.getElementById("weight").value;
+  const waistVal = document.getElementById("waist").value;
+  const liftVal = document.getElementById("lift").value;
+
+  if(!weightVal && !waistVal && !liftVal) return;
+
+  const entry = {
+    date: new Date().toLocaleDateString(),
+    weight: weightVal ? parseFloat(weightVal) : null,
+    waist: waistVal ? parseFloat(waistVal) : null,
+    lift: liftVal ? parseFloat(liftVal) : null
   };
 
-  if(!entry.weight && !entry.waist && !entry.lift) return;
-
   data.push(entry);
-  localStorage.setItem("progress",JSON.stringify(data));
+  localStorage.setItem("progress", JSON.stringify(data));
 
-  weight.value="";
-  waist.value="";
-  lift.value="";
+  document.getElementById("weight").value="";
+  document.getElementById("waist").value="";
+  document.getElementById("lift").value="";
 
   drawChart();
   drawHistory();
 }
 
 function drawChart(){
-  let valid=data.filter(d=>d.lift);
-  if(valid.length===0) return;
 
-  new Chart(document.getElementById("chart"),{
+  const liftData = data.filter(d => d.lift !== null);
+
+  if(chartInstance){
+    chartInstance.destroy();
+  }
+
+  if(liftData.length === 0){
+    return;
+  }
+
+  const ctx = document.getElementById("chart").getContext("2d");
+
+  chartInstance = new Chart(ctx,{
     type:'line',
     data:{
-      labels:valid.map(d=>d.date),
+      labels: liftData.map(d=>d.date),
       datasets:[{
         label:"Løft progresjon (kg)",
-        data:valid.map(d=>d.lift),
+        data: liftData.map(d=>d.lift),
         borderColor:"#ff4fa3",
-        fill:false
+        fill:false,
+        tension:0.3
       }]
+    },
+    options:{
+      responsive:true,
+      scales:{
+        y:{
+          beginAtZero:false
+        }
+      }
     }
   });
 }
 
 function drawHistory(){
-  let h=document.getElementById("history");
-  h.innerHTML="";
+
+  const historyDiv = document.getElementById("history");
+  historyDiv.innerHTML="";
+
   data.slice().reverse().forEach(d=>{
-    let line=document.createElement("div");
+
+    let text = d.date + " | ";
+
+    if(d.weight !== null){
+      text += "Vekt: " + d.weight + " kg ";
+    }
+    if(d.waist !== null){
+      text += "Midje: " + d.waist + " cm ";
+    }
+    if(d.lift !== null){
+      text += "Lift: " + d.lift + " kg ";
+    }
+
+    const line = document.createElement("div");
     line.className="small";
-    line.innerText=`${d.date} | ${
-      d.weight?`Vekt: ${d.weight} kg `:""
-    }${
-      d.waist?`Midje: ${d.waist} cm `:""
-    }${
-      d.lift?`Lift: ${d.lift} kg`:""
-    }`;
-    h.appendChild(line);
+    line.innerText = text;
+
+    historyDiv.appendChild(line);
   });
 }
 
 drawChart();
 drawHistory();
+
 </script>
 
 </body>
