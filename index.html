@@ -7,11 +7,11 @@
 <style>
 body{
   margin:0;
-  font-family: 'Arial';
+  font-family: Arial;
   background: linear-gradient(to bottom,#ffd6eb,#fff0f7);
 }
 header{
-  background:#ff9fcb;
+  background:#ff4fa3;
   padding:18px;
   text-align:center;
   font-size:22px;
@@ -56,7 +56,10 @@ button.save{
   margin-top:8px;
   cursor:pointer;
 }
-h3{margin-top:0;}
+.small{
+  font-size:14px;
+  opacity:0.8;
+}
 </style>
 </head>
 <body>
@@ -66,25 +69,12 @@ h3{margin-top:0;}
 <nav>
   <button onclick="show('dashboard')">🏠</button>
   <button onclick="show('progress')">📊</button>
-  <button onclick="show('training')">💪</button>
-  <button onclick="show('routine')">📅</button>
 </nav>
 
 <div id="dashboard" class="section active">
   <div class="card">
-    <h3>Dagens 3 viktigste</h3>
-    <textarea id="dailyGoals"></textarea>
-  </div>
-
-  <div class="card">
-    <h3>💧 Vann</h3>
-    <button onclick="addWater()">+1 glass</button>
-    <p id="waterDisplay"></p>
-  </div>
-
-  <div class="card">
-    <h3>🌙 3 bra ting i dag</h3>
-    <textarea id="goodThings"></textarea>
+    <h3>Dagens setning</h3>
+    <p id="quote"></p>
   </div>
 </div>
 
@@ -93,42 +83,17 @@ h3{margin-top:0;}
     <h3>Logg målinger</h3>
     <input type="number" id="weight" placeholder="Vekt (kg)">
     <input type="number" id="waist" placeholder="Midje (cm)">
-    <input type="number" id="glutes" placeholder="Rumpe (cm)">
-    <input type="number" id="thigh" placeholder="Lår (cm)">
-    <input type="number" id="calf" placeholder="Legg (cm)">
-    <input type="number" id="arm" placeholder="Arm (cm)">
     <input type="number" id="lift" placeholder="Tyngste løft (kg)">
-    <input type="number" id="bike" placeholder="Sykkel (km)">
-    <input type="number" id="run" placeholder="Løping (km)">
-    <input type="number" id="steps" placeholder="Skritt">
     <button class="save" onclick="saveProgress()">Lagre måling</button>
   </div>
 
   <div class="card">
-    <canvas id="chartLift"></canvas>
+    <canvas id="chart"></canvas>
   </div>
-  <div class="card">
-    <canvas id="chartWeight"></canvas>
-  </div>
-</div>
 
-<div id="training" class="section">
   <div class="card">
-    <h3>Min treningsplan</h3>
-    <textarea id="plan"></textarea>
-  </div>
-</div>
-
-<div id="routine" class="section">
-  <div class="card">
-    <h3>Ukedag rutiner</h3>
-    <textarea id="monday" placeholder="Mandag"></textarea>
-    <textarea id="tuesday" placeholder="Tirsdag"></textarea>
-    <textarea id="wednesday" placeholder="Onsdag"></textarea>
-    <textarea id="thursday" placeholder="Torsdag"></textarea>
-    <textarea id="friday" placeholder="Fredag"></textarea>
-    <textarea id="saturday" placeholder="Lørdag"></textarea>
-    <textarea id="sunday" placeholder="Søndag"></textarea>
+    <h3>Historikk</h3>
+    <div id="history"></div>
   </div>
 </div>
 
@@ -138,57 +103,77 @@ function show(id){
   document.getElementById(id).classList.add('active');
 }
 
-let water=localStorage.getItem("water")||0;
-document.getElementById("waterDisplay").innerText="Glass i dag: "+water;
+const quotes=[
+"Du bygger, ikke beviser.",
+"Små steg skaper identitet.",
+"Komfort kommer av oppmøte.",
+"Struktur gir ro.",
+"Du er i prosess."
+];
 
-function addWater(){
-  water++;
-  localStorage.setItem("water",water);
-  document.getElementById("waterDisplay").innerText="Glass i dag: "+water;
-}
+document.getElementById("quote").innerText=
+quotes[new Date().getDate()%quotes.length];
 
 let data=JSON.parse(localStorage.getItem("progress"))||[];
 
 function saveProgress(){
   let entry={
-    weight:parseFloat(weight.value)||0,
-    lift:parseFloat(lift.value)||0
+    date:new Date().toLocaleDateString(),
+    weight:weight.value?parseFloat(weight.value):null,
+    waist:waist.value?parseFloat(waist.value):null,
+    lift:lift.value?parseFloat(lift.value):null
   };
+
+  if(!entry.weight && !entry.waist && !entry.lift) return;
+
   data.push(entry);
   localStorage.setItem("progress",JSON.stringify(data));
-  drawCharts();
+
+  weight.value="";
+  waist.value="";
+  lift.value="";
+
+  drawChart();
+  drawHistory();
 }
 
-function drawCharts(){
-  if(data.length<1)return;
+function drawChart(){
+  let valid=data.filter(d=>d.lift);
+  if(valid.length===0) return;
 
-  new Chart(document.getElementById("chartLift"),{
+  new Chart(document.getElementById("chart"),{
     type:'line',
     data:{
-      labels:data.map((_,i)=>i+1),
+      labels:valid.map(d=>d.date),
       datasets:[{
-        label:"Løft progresjon",
-        data:data.map(d=>d.lift),
+        label:"Løft progresjon (kg)",
+        data:valid.map(d=>d.lift),
         borderColor:"#ff4fa3",
         fill:false
       }]
     }
   });
+}
 
-  new Chart(document.getElementById("chartWeight"),{
-    type:'line',
-    data:{
-      labels:data.map((_,i)=>i+1),
-      datasets:[{
-        label:"Vekt progresjon",
-        data:data.map(d=>d.weight),
-        borderColor:"#ff99cc",
-        fill:false
-      }]
-    }
+function drawHistory(){
+  let h=document.getElementById("history");
+  h.innerHTML="";
+  data.slice().reverse().forEach(d=>{
+    let line=document.createElement("div");
+    line.className="small";
+    line.innerText=`${d.date} | ${
+      d.weight?`Vekt: ${d.weight} kg `:""
+    }${
+      d.waist?`Midje: ${d.waist} cm `:""
+    }${
+      d.lift?`Lift: ${d.lift} kg`:""
+    }`;
+    h.appendChild(line);
   });
 }
-drawCharts();
+
+drawChart();
+drawHistory();
 </script>
 
 </body>
