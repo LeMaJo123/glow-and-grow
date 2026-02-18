@@ -17,21 +17,39 @@ text-align:center;
 font-size:22px;
 font-weight:bold;
 }
+nav{
+display:flex;
+justify-content:space-around;
+background:#ff85c1;
+padding:10px;
+}
+nav button{
+background:white;
+border:none;
+padding:8px 14px;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+}
 .section{
+display:none;
 background:white;
 margin:20px;
 padding:15px;
 border-radius:16px;
 box-shadow:0 6px 15px rgba(0,0,0,0.08);
 }
-input,textarea{
+.section.active{
+display:block;
+}
+textarea,input,select{
 width:100%;
 padding:8px;
 margin-top:8px;
 border-radius:10px;
 border:1px solid #eee;
 }
-button{
+button.main{
 margin-top:12px;
 padding:10px;
 width:100%;
@@ -52,28 +70,25 @@ margin-bottom:6px;
 
 <header>✨ Leni Glow Era ✨</header>
 
-<div class="section">
+<nav>
+<button onclick="showSection('glow')">Glow</button>
+<button onclick="showSection('day')">Dag</button>
+<button onclick="showSection('history')">Historikk</button>
+</nav>
+
+<!-- GLOW SECTION -->
+<div id="glow" class="section active">
+
 <h3>Dagens 3 mål</h3>
 <textarea id="dailyGoals"></textarea>
-</div>
 
-<div class="section">
 <h3>3 bra ting i dag</h3>
 <textarea id="goodThings"></textarea>
-</div>
 
-<div class="section">
 <h3>💧 Vann</h3>
-<button onclick="addWater()">+1 glass</button>
+<button class="main" onclick="addWater()">+1 glass</button>
 <p id="waterDisplay"></p>
-</div>
 
-<div class="section">
-<h3>Treningsplan</h3>
-<textarea id="plan"></textarea>
-</div>
-
-<div class="section">
 <h3>Logg målinger</h3>
 <input type="number" id="weight" placeholder="Vekt (kg)">
 <input type="number" id="waist" placeholder="Midje (cm)">
@@ -85,25 +100,63 @@ margin-bottom:6px;
 <input type="number" id="bike" placeholder="Sykkel (km)">
 <input type="number" id="run" placeholder="Løping (km)">
 <input type="number" id="steps" placeholder="Skritt">
-<button onclick="saveProgress()">Lagre måling</button>
+<button class="main" onclick="saveProgress()">Lagre måling</button>
+
 </div>
 
-<div class="section">
+<!-- DAG SECTION -->
+<div id="day" class="section">
+
+<h3>Velg dag</h3>
+<select id="daySelect" onchange="loadDay()">
+<option>Mandag</option>
+<option>Tirsdag</option>
+<option>Onsdag</option>
+<option>Torsdag</option>
+<option>Fredag</option>
+<option>Lørdag</option>
+<option>Søndag</option>
+</select>
+
+<h3>Morgenrutine</h3>
+<textarea id="morning"></textarea>
+
+<h3>Kveldsrutine</h3>
+<textarea id="evening"></textarea>
+
+<h3>Plan / Oppgaver</h3>
+<textarea id="plan"></textarea>
+
+<h3>Middag</h3>
+<textarea id="dinner"></textarea>
+
+<h3>Notater</h3>
+<textarea id="notes"></textarea>
+
+</div>
+
+<!-- HISTORIKK SECTION -->
+<div id="history" class="section">
 <h3>Historikk</h3>
-<div id="history"></div>
+<div id="historyList"></div>
 </div>
 
 <script>
 
-function saveText(id){
-localStorage.setItem(id,document.getElementById(id).value);
+function showSection(id){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
 }
 
-["dailyGoals","goodThings","plan"].forEach(id=>{
+// ---------- LAGRE TEKST ----------
+["dailyGoals","goodThings"].forEach(id=>{
 document.getElementById(id).value=localStorage.getItem(id)||"";
-document.getElementById(id).addEventListener("input",()=>saveText(id));
+document.getElementById(id).addEventListener("input",()=>{
+localStorage.setItem(id,document.getElementById(id).value);
+});
 });
 
+// ---------- VANN ----------
 let water=parseInt(localStorage.getItem("water")||0);
 document.getElementById("waterDisplay").innerText="Glass i dag: "+water;
 
@@ -113,6 +166,30 @@ localStorage.setItem("water",water);
 document.getElementById("waterDisplay").innerText="Glass i dag: "+water;
 }
 
+// ---------- DAGLIG STRUKTUR ----------
+const fields=["morning","evening","plan","dinner","notes"];
+
+function getKey(field){
+return document.getElementById("daySelect").value+"_"+field;
+}
+
+function loadDay(){
+fields.forEach(field=>{
+document.getElementById(field).value=
+localStorage.getItem(getKey(field))||"";
+});
+}
+
+fields.forEach(field=>{
+document.getElementById(field).addEventListener("input",()=>{
+localStorage.setItem(getKey(field),
+document.getElementById(field).value);
+});
+});
+
+loadDay();
+
+// ---------- MÅLINGER ----------
 let data=JSON.parse(localStorage.getItem("progress"))||[];
 
 function saveProgress(){
@@ -142,8 +219,8 @@ drawHistory();
 }
 
 function drawHistory(){
-const historyDiv=document.getElementById("history");
-historyDiv.innerHTML="";
+const list=document.getElementById("historyList");
+list.innerHTML="";
 
 data.slice().reverse().forEach(d=>{
 let text=d.date+" | ";
@@ -152,10 +229,10 @@ if(key!=="date"&&d[key]!==null){
 text+=key+": "+d[key]+" ";
 }
 });
-const line=document.createElement("div");
-line.className="small";
-line.innerText=text;
-historyDiv.appendChild(line);
+const div=document.createElement("div");
+div.className="small";
+div.innerText=text;
+list.appendChild(div);
 });
 }
 
