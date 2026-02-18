@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Leni Glow Era</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom, #ffe6f2, #fff0f7);
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: #ffb6d9;
+  padding: 15px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+nav {
+  display: flex;
+  justify-content: space-around;
+  background: #ffcce6;
+  padding: 10px;
+}
+
+nav button {
+  background: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.section {
+  display: none;
+  padding: 20px;
+}
+
+.active {
+  display: block;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+}
+
+input, textarea {
+  width: 100%;
+  margin-top: 5px;
+  padding: 5px;
+}
+
+button.save {
+  background: #ff69b4;
+  color: white;
+  border: none;
+  padding: 8px;
+  margin-top: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>✨ Leni Glow Era ✨</header>
+
+<nav>
+  <button onclick="show('dashboard')">🏠</button>
+  <button onclick="show('progress')">📊</button>
+  <button onclick="show('gym')">💪</button>
+  <button onclick="show('structure')">🗂</button>
+</nav>
+
+<div id="dashboard" class="section active">
+  <div class="card">
+    <h3>Dagens fokus</h3>
+    <textarea id="dailyGoals" placeholder="Skriv maks 3 ting..."></textarea>
+  </div>
+
+  <div class="card">
+    <h3>💧 Vann</h3>
+    <button onclick="addWater()">Drakk 1 glass</button>
+    <p id="waterDisplay"></p>
+  </div>
+
+  <div class="card">
+    <h3>🔥 Dagens setning</h3>
+    <p id="quote"></p>
+  </div>
+</div>
+
+<div id="progress" class="section">
+  <div class="card">
+    <h3>Logg målinger</h3>
+    <input type="number" id="weight" placeholder="Vekt (kg)">
+    <input type="number" id="waist" placeholder="Midje (cm)">
+    <input type="number" id="glutes" placeholder="Rumpe (cm)">
+    <input type="number" id="thigh" placeholder="Lår (cm)">
+    <input type="number" id="calf" placeholder="Legg (cm)">
+    <input type="number" id="arm" placeholder="Arm (cm)">
+    <input type="number" id="lift" placeholder="Tyngste løft (kg)">
+    <input type="number" id="bike" placeholder="Sykkel (km)">
+    <button class="save" onclick="saveProgress()">Lagre</button>
+  </div>
+
+  <div class="card">
+    <canvas id="chart"></canvas>
+  </div>
+</div>
+
+<div id="gym" class="section">
+  <div class="card">
+    <h3>Fast økt</h3>
+    <ul>
+      <li>Sykkel 10–15 min</li>
+      <li>Hip thrust</li>
+      <li>Side leg raises</li>
+      <li>Kjerne</li>
+    </ul>
+  </div>
+</div>
+
+<div id="structure" class="section">
+  <div class="card">
+    <h3>Morgenrutine</h3>
+    <textarea id="morning"></textarea>
+  </div>
+  <div class="card">
+    <h3>Kveldsrutine</h3>
+    <textarea id="evening"></textarea>
+  </div>
+  <div class="card">
+    <h3>Middagsplan</h3>
+    <textarea id="dinner"></textarea>
+  </div>
+  <div class="card">
+    <h3>Handleliste</h3>
+    <textarea id="shopping"></textarea>
+  </div>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+let water = localStorage.getItem("water") || 0;
+document.getElementById("waterDisplay").innerText = "Glass i dag: " + water;
+
+function addWater(){
+  water++;
+  localStorage.setItem("water", water);
+  document.getElementById("waterDisplay").innerText = "Glass i dag: " + water;
+}
+
+const quotes = [
+  "Du bygger, ikke beviser.",
+  "Små repetisjoner skaper identitet.",
+  "Komfort kommer av oppmøte.",
+  "Struktur gir ro.",
+  "Du er i prosess."
+];
+
+document.getElementById("quote").innerText =
+  quotes[new Date().getDate() % quotes.length];
+
+let progressData = JSON.parse(localStorage.getItem("progress")) || [];
+
+function saveProgress(){
+  let entry = {
+    lift: parseFloat(document.getElementById("lift").value) || 0
+  };
+  progressData.push(entry);
+  localStorage.setItem("progress", JSON.stringify(progressData));
+  drawChart();
+}
+
+function drawChart(){
+  let ctx = document.getElementById("chart").getContext("2d");
+  new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:progressData.map((_,i)=>i+1),
+      datasets:[{
+        label:"Løft progresjon",
+        data:progressData.map(d=>d.lift),
+        borderColor:"#ff69b4",
+        fill:false
+      }]
+    }
+  });
+}
+drawChart();
+</script>
+
+</body>
+</html>
