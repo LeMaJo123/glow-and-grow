@@ -5,70 +5,60 @@
 <title>Leni Glow Era</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, #ffe6f2, #fff0f7);
-  margin: 0;
-  padding: 0;
+body{
+  margin:0;
+  font-family: 'Arial';
+  background: linear-gradient(to bottom,#ffd6eb,#fff0f7);
 }
-
-header {
-  background: #ffb6d9;
-  padding: 15px;
-  text-align: center;
-  font-size: 22px;
-  font-weight: bold;
+header{
+  background:#ff9fcb;
+  padding:18px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  color:white;
 }
-
-nav {
-  display: flex;
-  justify-content: space-around;
-  background: #ffcce6;
-  padding: 10px;
+nav{
+  display:flex;
+  justify-content:space-around;
+  background:#ffc6e3;
+  padding:10px;
 }
-
-nav button {
-  background: white;
-  border: none;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
+nav button{
+  background:white;
+  border:none;
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
 }
-
-.section {
-  display: none;
-  padding: 20px;
+.section{display:none;padding:20px;}
+.active{display:block;}
+.card{
+  background:white;
+  padding:15px;
+  border-radius:14px;
+  margin-bottom:15px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
-
-.active {
-  display: block;
+input,textarea{
+  width:100%;
+  margin-top:5px;
+  padding:6px;
+  border-radius:8px;
+  border:1px solid #eee;
 }
-
-.card {
-  background: white;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 12px;
+button.save{
+  background:#ff4fa3;
+  color:white;
+  border:none;
+  padding:8px;
+  border-radius:8px;
+  margin-top:8px;
+  cursor:pointer;
 }
-
-input, textarea {
-  width: 100%;
-  margin-top: 5px;
-  padding: 5px;
-}
-
-button.save {
-  background: #ff69b4;
-  color: white;
-  border: none;
-  padding: 8px;
-  margin-top: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-}
+h3{margin-top:0;}
 </style>
 </head>
-
 <body>
 
 <header>✨ Leni Glow Era ✨</header>
@@ -76,25 +66,25 @@ button.save {
 <nav>
   <button onclick="show('dashboard')">🏠</button>
   <button onclick="show('progress')">📊</button>
-  <button onclick="show('gym')">💪</button>
-  <button onclick="show('structure')">🗂</button>
+  <button onclick="show('training')">💪</button>
+  <button onclick="show('routine')">📅</button>
 </nav>
 
 <div id="dashboard" class="section active">
   <div class="card">
-    <h3>Dagens fokus</h3>
-    <textarea id="dailyGoals" placeholder="Skriv maks 3 ting..."></textarea>
+    <h3>Dagens 3 viktigste</h3>
+    <textarea id="dailyGoals"></textarea>
   </div>
 
   <div class="card">
     <h3>💧 Vann</h3>
-    <button onclick="addWater()">Drakk 1 glass</button>
+    <button onclick="addWater()">+1 glass</button>
     <p id="waterDisplay"></p>
   </div>
 
   <div class="card">
-    <h3>🔥 Dagens setning</h3>
-    <p id="quote"></p>
+    <h3>🌙 3 bra ting i dag</h3>
+    <textarea id="goodThings"></textarea>
   </div>
 </div>
 
@@ -109,42 +99,36 @@ button.save {
     <input type="number" id="arm" placeholder="Arm (cm)">
     <input type="number" id="lift" placeholder="Tyngste løft (kg)">
     <input type="number" id="bike" placeholder="Sykkel (km)">
-    <button class="save" onclick="saveProgress()">Lagre</button>
+    <input type="number" id="run" placeholder="Løping (km)">
+    <input type="number" id="steps" placeholder="Skritt">
+    <button class="save" onclick="saveProgress()">Lagre måling</button>
   </div>
 
   <div class="card">
-    <canvas id="chart"></canvas>
+    <canvas id="chartLift"></canvas>
+  </div>
+  <div class="card">
+    <canvas id="chartWeight"></canvas>
   </div>
 </div>
 
-<div id="gym" class="section">
+<div id="training" class="section">
   <div class="card">
-    <h3>Fast økt</h3>
-    <ul>
-      <li>Sykkel 10–15 min</li>
-      <li>Hip thrust</li>
-      <li>Side leg raises</li>
-      <li>Kjerne</li>
-    </ul>
+    <h3>Min treningsplan</h3>
+    <textarea id="plan"></textarea>
   </div>
 </div>
 
-<div id="structure" class="section">
+<div id="routine" class="section">
   <div class="card">
-    <h3>Morgenrutine</h3>
-    <textarea id="morning"></textarea>
-  </div>
-  <div class="card">
-    <h3>Kveldsrutine</h3>
-    <textarea id="evening"></textarea>
-  </div>
-  <div class="card">
-    <h3>Middagsplan</h3>
-    <textarea id="dinner"></textarea>
-  </div>
-  <div class="card">
-    <h3>Handleliste</h3>
-    <textarea id="shopping"></textarea>
+    <h3>Ukedag rutiner</h3>
+    <textarea id="monday" placeholder="Mandag"></textarea>
+    <textarea id="tuesday" placeholder="Tirsdag"></textarea>
+    <textarea id="wednesday" placeholder="Onsdag"></textarea>
+    <textarea id="thursday" placeholder="Torsdag"></textarea>
+    <textarea id="friday" placeholder="Fredag"></textarea>
+    <textarea id="saturday" placeholder="Lørdag"></textarea>
+    <textarea id="sunday" placeholder="Søndag"></textarea>
   </div>
 </div>
 
@@ -154,53 +138,57 @@ function show(id){
   document.getElementById(id).classList.add('active');
 }
 
-let water = localStorage.getItem("water") || 0;
-document.getElementById("waterDisplay").innerText = "Glass i dag: " + water;
+let water=localStorage.getItem("water")||0;
+document.getElementById("waterDisplay").innerText="Glass i dag: "+water;
 
 function addWater(){
   water++;
-  localStorage.setItem("water", water);
-  document.getElementById("waterDisplay").innerText = "Glass i dag: " + water;
+  localStorage.setItem("water",water);
+  document.getElementById("waterDisplay").innerText="Glass i dag: "+water;
 }
 
-const quotes = [
-  "Du bygger, ikke beviser.",
-  "Små repetisjoner skaper identitet.",
-  "Komfort kommer av oppmøte.",
-  "Struktur gir ro.",
-  "Du er i prosess."
-];
-
-document.getElementById("quote").innerText =
-  quotes[new Date().getDate() % quotes.length];
-
-let progressData = JSON.parse(localStorage.getItem("progress")) || [];
+let data=JSON.parse(localStorage.getItem("progress"))||[];
 
 function saveProgress(){
-  let entry = {
-    lift: parseFloat(document.getElementById("lift").value) || 0
+  let entry={
+    weight:parseFloat(weight.value)||0,
+    lift:parseFloat(lift.value)||0
   };
-  progressData.push(entry);
-  localStorage.setItem("progress", JSON.stringify(progressData));
-  drawChart();
+  data.push(entry);
+  localStorage.setItem("progress",JSON.stringify(data));
+  drawCharts();
 }
 
-function drawChart(){
-  let ctx = document.getElementById("chart").getContext("2d");
-  new Chart(ctx,{
+function drawCharts(){
+  if(data.length<1)return;
+
+  new Chart(document.getElementById("chartLift"),{
     type:'line',
     data:{
-      labels:progressData.map((_,i)=>i+1),
+      labels:data.map((_,i)=>i+1),
       datasets:[{
         label:"Løft progresjon",
-        data:progressData.map(d=>d.lift),
-        borderColor:"#ff69b4",
+        data:data.map(d=>d.lift),
+        borderColor:"#ff4fa3",
+        fill:false
+      }]
+    }
+  });
+
+  new Chart(document.getElementById("chartWeight"),{
+    type:'line',
+    data:{
+      labels:data.map((_,i)=>i+1),
+      datasets:[{
+        label:"Vekt progresjon",
+        data:data.map(d=>d.weight),
+        borderColor:"#ff99cc",
         fill:false
       }]
     }
   });
 }
-drawChart();
+drawCharts();
 </script>
 
 </body>
