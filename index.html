@@ -3,197 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <title>Leni Glow Era</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
 body{
-  margin:0;
-  font-family: Arial;
-  background: linear-gradient(to bottom,#ffd6eb,#fff0f7);
+margin:0;
+font-family:Arial;
+background:linear-gradient(to bottom,#ffd6eb,#fff5fb);
 }
 header{
-  background:#ff4fa3;
-  padding:18px;
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
-  color:white;
+background:#ff4fa3;
+color:white;
+padding:18px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
 }
-nav{
-  display:flex;
-  justify-content:space-around;
-  background:#ffc6e3;
-  padding:10px;
+.section{
+background:white;
+margin:20px;
+padding:15px;
+border-radius:16px;
+box-shadow:0 6px 15px rgba(0,0,0,0.08);
 }
-nav button{
-  background:white;
-  border:none;
-  padding:8px 12px;
-  border-radius:10px;
-  cursor:pointer;
+input,textarea{
+width:100%;
+padding:8px;
+margin-top:8px;
+border-radius:10px;
+border:1px solid #eee;
 }
-.section{display:none;padding:20px;}
-.active{display:block;}
-.card{
-  background:white;
-  padding:15px;
-  border-radius:14px;
-  margin-bottom:15px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.08);
-}
-input{
-  width:100%;
-  margin-top:5px;
-  padding:6px;
-  border-radius:8px;
-  border:1px solid #eee;
-}
-button.save{
-  background:#ff4fa3;
-  color:white;
-  border:none;
-  padding:8px;
-  border-radius:8px;
-  margin-top:8px;
-  cursor:pointer;
+button{
+margin-top:12px;
+padding:10px;
+width:100%;
+border:none;
+border-radius:12px;
+background:#ff4fa3;
+color:white;
+font-weight:bold;
+cursor:pointer;
 }
 .small{
-  font-size:14px;
-  margin-bottom:5px;
+font-size:14px;
+margin-bottom:6px;
 }
 </style>
 </head>
-
 <body>
 
 <header>✨ Leni Glow Era ✨</header>
 
-<nav>
-  <button onclick="show('progress')">📊</button>
-</nav>
+<div class="section">
+<h3>Dagens 3 mål</h3>
+<textarea id="dailyGoals"></textarea>
+</div>
 
-<div id="progress" class="section active">
+<div class="section">
+<h3>3 bra ting i dag</h3>
+<textarea id="goodThings"></textarea>
+</div>
 
-  <div class="card">
-    <h3>Logg målinger</h3>
-    <input type="number" id="weight" placeholder="Vekt (kg)">
-    <input type="number" id="waist" placeholder="Midje (cm)">
-    <input type="number" id="lift" placeholder="Tyngste løft (kg)">
-    <button class="save" onclick="saveProgress()">Lagre måling</button>
-  </div>
+<div class="section">
+<h3>💧 Vann</h3>
+<button onclick="addWater()">+1 glass</button>
+<p id="waterDisplay"></p>
+</div>
 
-  <div class="card">
-    <canvas id="chart"></canvas>
-  </div>
+<div class="section">
+<h3>Treningsplan</h3>
+<textarea id="plan"></textarea>
+</div>
 
-  <div class="card">
-    <h3>Historikk</h3>
-    <div id="history"></div>
-  </div>
+<div class="section">
+<h3>Logg målinger</h3>
+<input type="number" id="weight" placeholder="Vekt (kg)">
+<input type="number" id="waist" placeholder="Midje (cm)">
+<input type="number" id="glutes" placeholder="Rumpe (cm)">
+<input type="number" id="thigh" placeholder="Lår (cm)">
+<input type="number" id="calf" placeholder="Legger (cm)">
+<input type="number" id="arm" placeholder="Armer (cm)">
+<input type="number" id="lift" placeholder="Tyngste løft (kg)">
+<input type="number" id="bike" placeholder="Sykkel (km)">
+<input type="number" id="run" placeholder="Løping (km)">
+<input type="number" id="steps" placeholder="Skritt">
+<button onclick="saveProgress()">Lagre måling</button>
+</div>
 
+<div class="section">
+<h3>Historikk</h3>
+<div id="history"></div>
 </div>
 
 <script>
 
-function show(id){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function saveText(id){
+localStorage.setItem(id,document.getElementById(id).value);
 }
 
-let chartInstance = null;
-let data = JSON.parse(localStorage.getItem("progress")) || [];
+["dailyGoals","goodThings","plan"].forEach(id=>{
+document.getElementById(id).value=localStorage.getItem(id)||"";
+document.getElementById(id).addEventListener("input",()=>saveText(id));
+});
+
+let water=parseInt(localStorage.getItem("water")||0);
+document.getElementById("waterDisplay").innerText="Glass i dag: "+water;
+
+function addWater(){
+water++;
+localStorage.setItem("water",water);
+document.getElementById("waterDisplay").innerText="Glass i dag: "+water;
+}
+
+let data=JSON.parse(localStorage.getItem("progress"))||[];
 
 function saveProgress(){
 
-  const weightVal = document.getElementById("weight").value;
-  const waistVal = document.getElementById("waist").value;
-  const liftVal = document.getElementById("lift").value;
+const entry={
+date:new Date().toLocaleDateString(),
+weight:weight.value?weight.value+" kg":null,
+waist:waist.value?waist.value+" cm":null,
+glutes:glutes.value?glutes.value+" cm":null,
+thigh:thigh.value?thigh.value+" cm":null,
+calf:calf.value?calf.value+" cm":null,
+arm:arm.value?arm.value+" cm":null,
+lift:lift.value?lift.value+" kg":null,
+bike:bike.value?bike.value+" km":null,
+run:run.value?run.value+" km":null,
+steps:steps.value?steps.value+" skritt":null
+};
 
-  if(!weightVal && !waistVal && !liftVal) return;
+if(Object.values(entry).every(v=>v===null||v===entry.date)) return;
 
-  const entry = {
-    date: new Date().toLocaleDateString(),
-    weight: weightVal ? parseFloat(weightVal) : null,
-    waist: waistVal ? parseFloat(waistVal) : null,
-    lift: liftVal ? parseFloat(liftVal) : null
-  };
+data.push(entry);
+localStorage.setItem("progress",JSON.stringify(data));
 
-  data.push(entry);
-  localStorage.setItem("progress", JSON.stringify(data));
+document.querySelectorAll("input").forEach(i=>i.value="");
 
-  document.getElementById("weight").value="";
-  document.getElementById("waist").value="";
-  document.getElementById("lift").value="";
-
-  drawChart();
-  drawHistory();
-}
-
-function drawChart(){
-
-  const liftData = data.filter(d => d.lift !== null);
-
-  if(chartInstance){
-    chartInstance.destroy();
-  }
-
-  if(liftData.length === 0){
-    return;
-  }
-
-  const ctx = document.getElementById("chart").getContext("2d");
-
-  chartInstance = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels: liftData.map(d=>d.date),
-      datasets:[{
-        label:"Løft progresjon (kg)",
-        data: liftData.map(d=>d.lift),
-        borderColor:"#ff4fa3",
-        fill:false,
-        tension:0.3
-      }]
-    },
-    options:{
-      responsive:true,
-      scales:{
-        y:{
-          beginAtZero:false
-        }
-      }
-    }
-  });
+drawHistory();
 }
 
 function drawHistory(){
+const historyDiv=document.getElementById("history");
+historyDiv.innerHTML="";
 
-  const historyDiv = document.getElementById("history");
-  historyDiv.innerHTML="";
-
-  data.slice().reverse().forEach(d=>{
-
-    let text = d.date + " | ";
-
-    if(d.weight !== null){
-      text += "Vekt: " + d.weight + " kg ";
-    }
-    if(d.waist !== null){
-      text += "Midje: " + d.waist + " cm ";
-    }
-    if(d.lift !== null){
-      text += "Lift: " + d.lift + " kg ";
-    }
-
-    const line = document.createElement("div");
-    line.className="small";
-    line.innerText = text;
-
-    historyDiv.appendChild(line);
-  });
+data.slice().reverse().forEach(d=>{
+let text=d.date+" | ";
+Object.keys(d).forEach(key=>{
+if(key!=="date"&&d[key]!==null){
+text+=key+": "+d[key]+" ";
+}
+});
+const line=document.createElement("div");
+line.className="small";
+line.innerText=text;
+historyDiv.appendChild(line);
+});
 }
 
-drawChart();
 drawHistory();
 
 </script>
